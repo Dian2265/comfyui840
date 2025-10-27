@@ -2686,10 +2686,16 @@ export const Ai = (): JSX.Element => {
                     alt={selectedToolDetail.author.nickname}
                     src={selectedToolDetail.author.avatar}
                   />
-                  <div>
+                  <div className="flex-1">
                     <h3 className="text-white font-medium text-sm">{selectedToolDetail.author.nickname}</h3>
                     <p className="text-[#ffffffb2] text-xs mt-1">AI 工具开发者</p>
                   </div>
+                  <button
+                    onClick={() => setToolDetailDialogOpen(false)}
+                    className="w-6 h-6 flex items-center justify-center rounded text-[rgba(255,255,255,0.6)] hover:bg-[rgba(255,255,255,0.1)] hover:text-white transition-all"
+                  >
+                    ✕
+                  </button>
                 </div>
 
                 <Separator className="bg-[#ffffff1f]" />
