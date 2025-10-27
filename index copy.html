@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>创意窗口</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'PingFang SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #09090A;
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* 顶部导航栏 */
+        .top-navbar {
+            height: 40px;
+            background: #23252B;
+            border-bottom: 1px solid #000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 8px;
+        }
+
+        .window-controls {
+            display: flex;
+            gap: 8px;
+            padding-left: 12px;
+        }
+
+        .window-btn {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .window-btn.close { background: transparent; }
+        .window-btn.minimize { background: transparent; }
+        .window-btn.maximize { background: #28C33F; }
+
+        .nav-tabs {
+            display: flex;
+            gap: 4px;
+            padding: 2px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 6px;
+        }
+
+        .nav-tab {
+            padding: 0 16px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .nav-tab.active {
+            background: #464951;
+            color: #fff;
+        }
+
+        .nav-tab:not(.active) {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .top-right-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .credits-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 0.5px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 3px 8px;
+            font-size: 12px;
+        }
+
+        .credits-icon {
+            width: 16px;
+            height: 16px;
+            background: linear-gradient(122deg, #FF5454 0%, #FFA339 0%, #FFEFA4 18%, #FFF 35%, #FFF 70%, #70B7EA 93%, #B19DFF 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 500;
+        }
+
+        .divider-vertical {
+            width: 0;
+            height: 20px;
+            border-left: 0.5px solid #fff;
+            opacity: 0.16;
+        }
+
+        .user-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.08);
+            border: 0.5px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .btn {
+            height: 24px;
+            padding: 0 8px;
+            border-radius: 2px;
+            border: none;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-secondary {
+            background: #464951;
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .btn-primary {
+            background: #FFDD4C;
+            color: #000;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        /* 主内容区 */
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+
+        /* 工作区容器 */
+        .workspace-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 顶部工具栏 */
+        .top-toolbar {
+            height: 48px;
+            background: #23252B;
+            border-bottom: 1px solid #000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 4px;
+        }
+
+        .toolbar-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .zoom-control {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            padding: 8px 4px;
+            border-radius: 2px;
+            font-size: 12px;
+            background: rgba(255, 255, 255, 0);
+            cursor: pointer;
+        }
+
+        .tool-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 2px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.7);
+            transition: all 0.2s;
+        }
+
+        .tool-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .tool-btn.active {
+            background: #3083FF;
+            border: 1px solid #FFDD4C;
+        }
+
+        .tool-btn-text {
+            padding: 8px;
+            height: 36px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .divider-toolbar {
+            width: 1px;
+            height: 18px;
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        /* 画布区域 */
+        .canvas-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #09090A;
+            position: relative;
+            overflow: hidden;
+            cursor: grab;
+        }
+
+        .canvas-area:active {
+            cursor: grabbing;
+        }
+
+        .canvas-image {
+            max-width: none;
+            max-height: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform-origin: center center;
+            object-fit: contain;
+            border-radius: 8px;
+            transition: transform 0.1s ease-out;
+            user-select: none;
+            pointer-events: none;
+        }
+
+        .canvas-image.show {
+            display: block;
+        }
+
+        .canvas-image.hide {
+            display: none;
+        }
+
+        /* 底部缩略图栏 */
+        .thumbnail-bar {
+            height: 148px;
+            background: #23252B;
+            border-top: 1px solid #000;
+            box-shadow: inset 0px 1px 0px 0px rgba(0, 0, 0, 0.6);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .thumbnail-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .thumbnail-left-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-btn {
+            height: 24px;
+            padding: 0 8px;
+            background: #464951;
+            border: none;
+            border-radius: 2px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0px 2px 0px 0px rgba(0, 0, 0, 0.02);
+        }
+
+        .thumbnail-info {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .thumbnail-right-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .thumbnail-list {
+            display: flex;
+            gap: 2px;
+            overflow-x: auto;
+        }
+
+        .thumbnail-item {
+            width: 68px;
+            height: 68px;
+            border-radius: 2px;
+            cursor: pointer;
+            position: relative;
+            flex-shrink: 0;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .thumbnail-item.selected {
+            border: 2px solid #FFDD4C;
+        }
+
+        .thumbnail-number {
+            position: absolute;
+            bottom: 2px;
+            left: 2px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 0.5px solid rgba(255, 255, 255, 0.12);
+            border-radius: 1px;
+            padding: 0 4px 1px;
+            font-size: 10px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+        }
+
+        /* 右侧面板 */
+        .right-panel {
+            width: 280px;
+            background: #23252B;
+            border-left: 1px solid #000;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .panel-tabs {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 16px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+            height: 48px;
+        }
+
+        .panel-tab {
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            color: rgba(255, 255, 255, 0.3);
+            padding-bottom: 2px;
+        }
+
+        .panel-tab.active {
+            color: #fff;
+            border-bottom: 2px solid #fff;
+        }
+
+        .features-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 16px;
+            padding-bottom: 420px;
+            overflow-y: auto;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .features-grid::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .features-grid::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .features-grid::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 3px;
+        }
+
+        .features-grid::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 2px;
+            padding: 6px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .feature-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .feature-image {
+            width: 96px;
+            height: 52px;
+            border-radius: 2px;
+            background: #464951;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .feature-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .feature-title {
+            font-size: 12px;
+            color: #fff;
+        }
+
+        .ai-badge {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 18px;
+            height: 12px;
+            background: linear-gradient(157deg, #FF5454 0%, #FFA339 27%, #FFEFA4 68%, #F3FFF5 100%);
+            border-radius: 2px 2px 0px 2px;
+            box-shadow: -1px 1px 2px 0px rgba(0, 0, 0, 0.35);
+        }
+
+        /* 图层面板 */
+        .layers-panel {
+            border-top: 1px solid #000;
+            background: #23252B;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 10;
+        }
+
+        .layers-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 7px 16px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+        }
+
+        .layers-title {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .layers-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+        }
+
+        .blend-mode-select {
+            flex: 1;
+            height: 28px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid #5F636D;
+            border-radius: 2px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+            padding: 0 8px;
+        }
+
+        .opacity-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .opacity-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .opacity-input {
+            width: 60px;
+            height: 28px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid #464951;
+            border-radius: 2px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 13px;
+            padding: 0 6px;
+            text-align: right;
+        }
+
+        .layers-list {
+            padding: 4px 8px;
+        }
+
+        .layer-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 8px;
+            border-radius: 2px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .layer-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .layer-item.selected {
+            background: #464951;
+        }
+
+        .layer-thumbnail {
+            width: 32px;
+            height: 32px;
+            border-radius: 2px;
+            background: rgba(255, 255, 255, 0.12);
+            flex-shrink: 0;
+        }
+
+        .layer-name {
+            flex: 1;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .layer-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .layers-footer {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 16px;
+            padding: 8px 16px;
+            border-top: 1px solid #000;
+        }
+
+        .layer-action-btn {
+            width: 16px;
+            height: 16px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* 中央功能展示区 */
+        .feature-showcase {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            transform: translate(0, 0);
+            width: 273px;
+            background: #22252C;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: move;
+            user-select: none;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            transition: box-shadow 0.2s;
+            display: block;
+            z-index: 100;
+        }
+
+        .feature-showcase:hover {
+            box-shadow: 0 6px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .feature-showcase.dragging {
+            cursor: grabbing;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .feature-showcase-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            cursor: move;
+        }
+
+        .feature-showcase-title {
+            font-size: 14px;
+            font-weight: 700;
+            text-align: left;
+            flex: 1;
+        }
+
+        .close-btn {
+            width: 20px;
+            height: 20px;
+            border: none;
+            background: transparent;
+            cursor: pointer !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 2px;
+            transition: all 0.2s;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 16px;
+            line-height: 1;
+            padding: 0;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .close-btn:active {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .upload-areas {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-bottom: 20px;
+            cursor: move;
+        }
+
+        .upload-area {
+            text-align: left;
+            cursor: move;
+        }
+
+        .upload-label {
+            font-size: 12px;
+            margin-bottom: 8px;
+            display: block;
+            cursor: move;
+        }
+
+        .upload-box {
+            width: 100%;
+            height: 127px;
+            background: #3B404A;
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer !important;
+            transition: all 0.2s;
+        }
+
+        .upload-box:hover {
+            background: #454a56;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            color: rgba(255, 255, 255, 0.3);
+            pointer-events: none;
+        }
+
+        .generate-btn-container {
+            position: relative;
+        }
+
+        .generate-btn {
+            width: 100%;
+            height: 31px;
+            background: #FFDB0A;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #000;
+            cursor: pointer !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .generate-btn:hover {
+            background: #ffd000;
+        }
+
+        .generate-btn > * {
+            pointer-events: none;
+        }
+
+        .trial-info {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #F9F9F9;
+            cursor: default;
+        }
+
+        /* 滚动条样式 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #464951;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #5f636d;
+        }
+
+        /* 图标 SVG */
+        .icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .icon-sm {
+            width: 16px;
+            height: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 顶部导航栏 -->
+        <div class="top-navbar">
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <div class="window-controls">
+                    <div class="window-btn close"></div>
+                    <div class="window-btn minimize"></div>
+                    <div class="window-btn maximize"></div>
+                </div>
+                
+                <div class="nav-tabs">
+                    <div class="nav-tab active">创意</div>
+                </div>
+            </div>
+
+            <div class="top-right-controls">
+                <div class="credits-badge">
+                    <div class="credits-icon">★</div>
+                    <span style="background: linear-gradient(130deg, #FF5454 0%, #FFA339 15%, #FFEFA4 50%, #FFF 77%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">375</span>
+                    <div class="divider-vertical"></div>
+                    <span style="background: linear-gradient(124deg, #FF5454 0%, #FFA339 0%, #FFEFA4 18%, #FFF 35%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">充值</span>
+                </div>
+                
+                <div class="divider-vertical"></div>
+                
+                <div class="user-avatar">👤</div>
+                
+                <div class="divider-vertical"></div>
+                
+                <button class="btn btn-secondary">退出</button>
+                <button class="btn btn-primary">应用至精修</button>
+            </div>
+        </div>
+
+        <!-- 主内容区 -->
+        <div class="main-content">
+            <!-- 工作区容器 -->
+            <div class="workspace-container">
+                <!-- 顶部工具栏 -->
+                <div class="top-toolbar">
+                    <div class="toolbar-group">
+                        <div class="zoom-control">
+                            <span>100%</span>
+                            <span style="font-size: 10px;">▼</span>
+                        </div>
+                        <button class="tool-btn-text">合适</button>
+                        <button class="tool-btn">🖥</button>
+                    </div>
+
+                    <div class="divider-toolbar"></div>
+
+                    <div class="toolbar-group">
+                        <button class="tool-btn active" title="手工具">✋</button>
+                        <button class="tool-btn" title="移动工具">↔</button>
+                        <button class="tool-btn" title="缩放工具">🔍</button>
+                    </div>
+
+                    <div class="divider-toolbar"></div>
+
+                    <button class="tool-btn" title="液化">💧</button>
+
+                    <div class="divider-toolbar"></div>
+
+                    <div class="toolbar-group">
+                        <button class="tool-btn" title="祛痘">◉</button>
+                        <button class="tool-btn" title="修复">🔧</button>
+                        <button class="tool-btn" title="仿制图章">📋</button>
+                    </div>
+
+                    <div class="divider-toolbar"></div>
+
+                    <div class="toolbar-group">
+                        <button class="tool-btn" title="选区">⬚</button>
+                        <button class="tool-btn" title="画笔">🖌</button>
+                    </div>
+
+                    <div class="divider-toolbar"></div>
+
+                    <button class="tool-btn" title="裁剪">✂</button>
+                </div>
+
+                <!-- 画布区域 -->
+                <div class="canvas-area" id="canvasArea">
+                    <!-- 画布图片 -->
+                    <img id="canvasImage" class="canvas-image" src="" alt="Canvas Image" style="display: none;">
+                    
+                    <!-- 虚拟换装试衣功能展示 -->
+                    <div class="feature-showcase">
+                        <div class="feature-showcase-header">
+                            <h2 class="feature-showcase-title">虚拟换装试衣</h2>
+                            <button class="close-btn" title="关闭">✕</button>
+                        </div>
+                        
+                        <div class="upload-areas">
+                            <div class="upload-area">
+                                <label class="upload-label">模特图片</label>
+                                <div class="upload-box" onclick="document.getElementById('modelUpload').click()">
+                                    <span class="upload-icon">+</span>
+                                </div>
+                                <input type="file" id="modelUpload" style="display: none;" accept="image/*">
+                            </div>
+                            
+                            <div class="upload-area">
+                                <label class="upload-label">衣服图片</label>
+                                <div class="upload-box" onclick="document.getElementById('clothesUpload').click()">
+                                    <span class="upload-icon">+</span>
+                                </div>
+                                <input type="file" id="clothesUpload" style="display: none;" accept="image/*">
+                            </div>
+                        </div>
+
+                        <div class="generate-btn-container">
+                            <button class="generate-btn">
+                                <span>生成</span>
+                                <span>🌟</span>
+                                <span>0</span>
+                            </button>
+                            <div class="trial-info">剩余2次免费试用</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 底部缩略图栏 -->
+                <div class="thumbnail-bar">
+                    <div class="thumbnail-controls">
+                        <div class="thumbnail-left-controls">
+                            <button class="filter-btn">
+                                <span>⚙</span>
+                                <span>未筛选</span>
+                            </button>
+                            <button class="filter-btn">
+                                <span>↕</span>
+                                <span>文件名</span>
+                            </button>
+                            <span class="thumbnail-info">已选 1 张（共100张）</span>
+                        </div>
+                        
+                        <div class="thumbnail-right-controls">
+                            <span>🚩</span>
+                            <span>🚩</span>
+                            <div style="display: flex; gap: 5px;">
+                                <span>⭐</span>
+                                <span>⭐</span>
+                                <span>⭐</span>
+                                <span>☆</span>
+                                <span>☆</span>
+                            </div>
+                            <span>🎨</span>
+                            <span class="thumbnail-info">IMG_02</span>
+                        </div>
+                    </div>
+
+                    <div class="thumbnail-list">
+                        <div class="thumbnail-item selected" style="background-image: url('https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop');" data-image="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=1200&h=1200&fit=crop">
+                            <div class="thumbnail-number">1</div>
+                        </div>
+                        <div class="thumbnail-item" style="background-image: url('https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400&h=400&fit=crop');" data-image="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=1200&h=1200&fit=crop">
+                            <div class="thumbnail-number">2</div>
+                        </div>
+                        <div class="thumbnail-item" style="background-image: url('https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400&h=400&fit=crop');" data-image="https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=1200&h=1200&fit=crop">
+                            <div class="thumbnail-number">3</div>
+                        </div>
+                        <div class="thumbnail-item" style="background-image: url('https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=400&h=400&fit=crop');" data-image="https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=1200&h=1200&fit=crop">
+                            <div class="thumbnail-number">4</div>
+                        </div>
+                        <div class="thumbnail-item" style="background-image: url('https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop');" data-image="https://images.unsplash.com/photo-534528741775-53994a69daeb?w=1200&h=1200&fit=crop">
+                            <div class="thumbnail-number">5</div>
+                        </div>
+                        <div class="thumbnail-item" style="background-image: url('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop');" data-image="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&h=1200&fit=crop">
+                            <div class="thumbnail-number">6</div>
+                        </div>
+                        <div class="thumbnail-item" style="background-image: url('https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop');" data-image="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=1200&h=1200&fit=crop">
+                            <div class="thumbnail-number">7</div>
+                        </div>
+                        <div class="thumbnail-item" style="background-image: url('https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&h=400&fit=crop');" data-image="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=1200&h=1200&fit=crop">
+                            <div class="thumbnail-number">8</div>
+                        </div>
+                        <div class="thumbnail-item" style="background-image: url('https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&h=400&fit=crop');" data-image="https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=1200&h=1200&fit=crop">
+                            <div class="thumbnail-number">9</div>
+                        </div>
+                        <div class="thumbnail-item" style="background-image: url('https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop');" data-image="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=1200&h=1200&fit=crop">
+                            <div class="thumbnail-number">10</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧面板 -->
+            <div class="right-panel">
+                <!-- 功能标签 -->
+                <div class="panel-tabs">
+                    <div class="panel-tab active">推荐</div>
+                    <div class="panel-tab">收藏</div>
+                    <div class="panel-tab">已购买</div>
+                    <div class="panel-tab">工具箱</div>
+                </div>
+
+                <!-- 功能网格 -->
+                <div class="features-grid" id="featuresGrid">
+                    <!-- 内容将通过 JavaScript 动态加载 -->
+                </div>
+
+                <!-- 图层面板 -->
+                <div class="layers-panel">
+                    <div class="layers-header">
+                        <span class="layers-title">图层</span>
+                        <button class="layer-action-btn">📊</button>
+                    </div>
+
+                    <div class="layers-controls">
+                        <select class="blend-mode-select">
+                            <option>正常</option>
+                            <option>正片叠底</option>
+                            <option>滤色</option>
+                        </select>
+                        
+                        <div class="opacity-control">
+                            <span class="opacity-label">不透明度</span>
+                            <input type="text" class="opacity-input" value="88%">
+                        </div>
+                    </div>
+
+                    <div class="layers-list">
+                        <div class="layer-item selected">
+                            <div class="layer-thumbnail"></div>
+                            <span class="layer-name">图层</span>
+                            <div class="layer-actions">
+                                <span class="icon-sm">👁</span>
+                            </div>
+                        </div>
+                        
+                        <div class="layer-item">
+                            <div class="layer-thumbnail"></div>
+                            <span class="layer-name">图层</span>
+                        </div>
+                        
+                        <div class="layer-item">
+                            <div class="layer-thumbnail"></div>
+                            <span class="layer-name">图层</span>
+                        </div>
+                    </div>
+
+                    <div class="layers-footer">
+                        <button class="layer-action-btn" title="创建蒙版">🎭</button>
+                        <button class="layer-action-btn" title="创建组">📁</button>
+                        <button class="layer-action-btn" title="锁定">🔒</button>
+                        <button class="layer-action-btn" title="删除">🗑</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 功能卡片数据
+        const featuresData = {
+            recommend: [
+                { title: '虚拟试衣', gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
+                { title: 'AI 布景', gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' },
+                { title: '智能消除', gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' },
+                { title: '智能道具修复', gradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)' },
+                { title: 'AI 补草地', gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)' },
+                { title: '证件照衣服', gradient: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)' },
+                { title: '镜头虚化', gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)' },
+                { title: 'AI 超清', gradient: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)' },
+                { title: 'AI 抠图', gradient: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)' },
+                { title: '人像美颜', gradient: 'linear-gradient(135deg, #ff6e7f 0%, #bfe9ff 100%)' },
+                { title: '智能修图', gradient: 'linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%)' },
+                { title: '风格转换', gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' },
+                { title: '照片修复', gradient: 'linear-gradient(135deg, #fad0c4 0%, #ffd1ff 100%)' },
+                { title: 'HDR 增强', gradient: 'linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%)' },
+                { title: '智能配色', gradient: 'linear-gradient(135deg, #d299c2 0%, #fef9d7 100%)' },
+                { title: '光线调整', gradient: 'linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%)' },
+                { title: 'AI 滤镜', gradient: 'linear-gradient(135deg, #fdcbf1 0%, #e6dee9 100%)' },
+                { title: '智能裁剪', gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)' }
+            ],
+            favorite: [
+                { title: '虚拟试衣', gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
+                { title: 'AI 超清', gradient: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)' },
+                { title: '智能消除', gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' },
+                { title: '人像美颜', gradient: 'linear-gradient(135deg, #ff6e7f 0%, #bfe9ff 100%)' },
+                { title: 'AI 抠图', gradient: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)' }
+            ],
+            purchased: [
+                { title: 'AI 超清', gradient: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)' },
+                { title: '镜头虚化', gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)' },
+                { title: 'HDR 增强', gradient: 'linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%)' }
+            ]
+        };
+
+        // 渲染功能卡片
+        function renderFeatures(features) {
+            const grid = document.getElementById('featuresGrid');
+            grid.innerHTML = features.map(feature => `
+                <div class="feature-card" data-title="${feature.title}">
+                    <div class="feature-image">
+                        <div style="width: 100%; height: 100%; background: ${feature.gradient};"></div>
+                    </div>
+                    <div class="feature-title">${feature.title}</div>
+                    <div class="ai-badge"></div>
+                </div>
+            `).join('');
+
+            // 重新绑定点击事件
+            bindFeatureCardEvents();
+        }
+
+        // 绑定功能卡片点击事件
+        function bindFeatureCardEvents() {
+            document.querySelectorAll('.feature-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    const title = this.getAttribute('data-title');
+                    openShowcase(title);
+                    console.log('打开功能:', title);
+                });
+            });
+        }
+
+        // 初始化显示推荐列表
+        renderFeatures(featuresData.recommend);
+
+        // 面板标签切换
+        const panelTabs = document.querySelectorAll('.panel-tab');
+        panelTabs.forEach((tab, index) => {
+            tab.addEventListener('click', function() {
+                // 移除所有active状态
+                panelTabs.forEach(t => t.classList.remove('active'));
+                // 添加当前active状态
+                this.classList.add('active');
+                
+                // 根据标签显示不同内容
+                const tabText = this.textContent;
+                if (tabText === '推荐') {
+                    renderFeatures(featuresData.recommend);
+                } else if (tabText === '收藏') {
+                    renderFeatures(featuresData.favorite);
+                } else if (tabText === '已购买') {
+                    renderFeatures(featuresData.purchased);
+                } else if (tabText === '工具箱') {
+                    renderFeatures(featuresData.recommend); // 工具箱暂时显示推荐内容
+                }
+            });
+        });
+
+        // 弹窗拖拽功能
+        const showcase = document.querySelector('.feature-showcase');
+        let isDragging = false;
+        let startX = 0;
+        let startY = 0;
+        let offsetX = 0;
+        let offsetY = 0;
+
+        showcase.addEventListener('mousedown', function(e) {
+            // 如果点击的是上传框、生成按钮或关闭按钮，不启动拖拽
+            const target = e.target;
+            if (target.closest('.upload-box') || 
+                target.closest('.generate-btn') || 
+                target.closest('.close-btn')) {
+                return;
+            }
+
+            isDragging = true;
+            startX = e.clientX - offsetX;
+            startY = e.clientY - offsetY;
+            showcase.classList.add('dragging');
+        });
+
+        document.addEventListener('mousemove', function(e) {
+            if (!isDragging) return;
+            
+            e.preventDefault();
+            
+            offsetX = e.clientX - startX;
+            offsetY = e.clientY - startY;
+            
+            // 应用变换
+            showcase.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+        });
+
+        document.addEventListener('mouseup', function(e) {
+            if (isDragging) {
+                isDragging = false;
+                showcase.classList.remove('dragging');
+            }
+        });
+
+        // 关闭按钮功能
+        document.querySelector('.close-btn').addEventListener('click', function(e) {
+            e.stopPropagation();
+            showcase.style.display = 'none';
+        });
+
+        // 打开弹窗功能
+        function openShowcase(title) {
+            const showcaseTitle = document.querySelector('.feature-showcase-title');
+            showcaseTitle.textContent = title;
+            showcase.style.display = 'block';
+            
+            // 重置位置到右上角
+            offsetX = 0;
+            offsetY = 0;
+            showcase.style.transform = 'translate(0, 0)';
+        }
+
+        // 图片上传预览
+        document.getElementById('modelUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const uploadBox = e.target.parentElement.previousElementSibling;
+                    uploadBox.style.backgroundImage = `url(${event.target.result})`;
+                    uploadBox.style.backgroundSize = 'cover';
+                    uploadBox.innerHTML = '';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('clothesUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const uploadBox = e.target.parentElement.previousElementSibling;
+                    uploadBox.style.backgroundImage = `url(${event.target.result})`;
+                    uploadBox.style.backgroundSize = 'cover';
+                    uploadBox.innerHTML = '';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // 画布图片管理
+        const canvasImage = document.getElementById('canvasImage');
+        const canvasArea = document.getElementById('canvasArea');
+        let currentScale = 1;
+        let currentX = 0;
+        let currentY = 0;
+        let isPanning = false;
+        let startPanX = 0;
+        let startPanY = 0;
+
+        // 加载并显示图片
+        function loadCanvasImage(imageUrl) {
+            if (!imageUrl) return;
+            
+            canvasImage.src = imageUrl;
+            canvasImage.style.display = 'block';
+            
+            // 重置缩放和位置
+            currentScale = 1;
+            currentX = 0;
+            currentY = 0;
+            updateImageTransform();
+            
+            // 图片加载完成后自适应大小
+            canvasImage.onload = function() {
+                fitImageToCanvas();
+            };
+        }
+
+        // 自适应图片大小
+        function fitImageToCanvas() {
+            const canvasRect = canvasArea.getBoundingClientRect();
+            const imgWidth = canvasImage.naturalWidth;
+            const imgHeight = canvasImage.naturalHeight;
+            
+            // 计算适应画布的缩放比例
+            const scaleX = (canvasRect.width * 0.9) / imgWidth;
+            const scaleY = (canvasRect.height * 0.9) / imgHeight;
+            currentScale = Math.min(scaleX, scaleY);
+            
+            updateImageTransform();
+        }
+
+        // 更新图片变换
+        function updateImageTransform() {
+            canvasImage.style.transform = `translate(calc(-50% + ${currentX}px), calc(-50% + ${currentY}px)) scale(${currentScale})`;
+        }
+
+        // 鼠标滚轮缩放
+        canvasArea.addEventListener('wheel', function(e) {
+            if (canvasImage.style.display === 'none') return;
+            
+            e.preventDefault();
+            
+            // 计算缩放
+            const delta = e.deltaY > 0 ? 0.9 : 1.1;
+            const newScale = currentScale * delta;
+            
+            // 限制缩放范围
+            if (newScale < 0.1 || newScale > 10) return;
+            
+            // 获取鼠标相对于画布的位置
+            const rect = canvasArea.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left - rect.width / 2;
+            const mouseY = e.clientY - rect.top - rect.height / 2;
+            
+            // 计算缩放后的位置调整
+            const scaleChange = newScale / currentScale;
+            currentX = mouseX - (mouseX - currentX) * scaleChange;
+            currentY = mouseY - (mouseY - currentY) * scaleChange;
+            currentScale = newScale;
+            
+            updateImageTransform();
+        }, { passive: false });
+
+        // 画布拖拽平移
+        canvasArea.addEventListener('mousedown', function(e) {
+            if (canvasImage.style.display === 'none') return;
+            if (e.target.closest('.feature-showcase')) return;
+            
+            isPanning = true;
+            startPanX = e.clientX - currentX;
+            startPanY = e.clientY - currentY;
+        });
+
+        document.addEventListener('mousemove', function(e) {
+            if (!isPanning) return;
+            
+            e.preventDefault();
+            currentX = e.clientX - startPanX;
+            currentY = e.clientY - startPanY;
+            updateImageTransform();
+        });
+
+        document.addEventListener('mouseup', function() {
+            isPanning = false;
+        });
+
+        // 缩略图选择和切换
+        document.querySelectorAll('.thumbnail-item').forEach(item => {
+            item.addEventListener('click', function() {
+                // 更新选中状态
+                document.querySelectorAll('.thumbnail-item').forEach(t => t.classList.remove('selected'));
+                this.classList.add('selected');
+                
+                // 加载对应的大图
+                const imageUrl = this.getAttribute('data-image');
+                if (imageUrl) {
+                    loadCanvasImage(imageUrl);
+                }
+            });
+        });
+
+        // 初始化：加载第一张图片
+        const firstThumbnail = document.querySelector('.thumbnail-item.selected');
+        if (firstThumbnail) {
+            const initialImage = firstThumbnail.getAttribute('data-image');
+            if (initialImage) {
+                loadCanvasImage(initialImage);
+            }
+        }
+
+        // 工具栏按钮切换
+        document.querySelectorAll('.tool-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // 图层选择
+        document.querySelectorAll('.layer-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.layer-item').forEach(l => l.classList.remove('selected'));
+                this.classList.add('selected');
+            });
+        });
+
+        // 生成按钮点击
+        document.querySelector('.generate-btn').addEventListener('click', function() {
+            alert('生成功能需要后端API支持，这里仅展示UI界面');
+        });
+
+        console.log('创意窗口已加载完成！');
+        console.log('弹窗拖拽已启用 - 点击并拖动弹窗标题或空白区域即可移动');
+        console.log('点击功能卡片可以重新打开弹窗并更换标题');
+        console.log('推荐列表: 18个功能 | 收藏: 5个 | 已购买: 3个');
+        console.log('列表支持滚动查看更多内容');
+        console.log('图层面板已固定在屏幕底部');
+    </script>
+</body>
+</html>
+
